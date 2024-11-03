@@ -72,7 +72,8 @@ impl Tokenizer {
 
 
 
-    fn lookahead() -> () {
+    fn lookahead(&self) -> std::iter::Enumerate<std::iter::Skip<std::str::Chars<'_>>> {
+        self.source.chars().skip(self.position+1).enumerate()
     }
 
 
@@ -80,7 +81,7 @@ impl Tokenizer {
     fn lookahead_integerliteral(&mut self) -> i32 {
 
         let mut skip = 0usize;
-        for (index, c) in self.source.chars().skip(self.position+1).enumerate() {
+        for (index, c) in self.lookahead() {
             if !c.is_numeric() {
                 skip = index;
                 break;
