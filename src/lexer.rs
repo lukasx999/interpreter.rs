@@ -185,8 +185,16 @@ impl Tokenizer {
             ' '  => ignore = true,
 
             '"' => {
-                kind = TokenType::StringLiteral
-                    (self.lookahead_string_literal('"').unwrap());
+                kind = TokenType::StringLiteral(
+                    match
+                    self.lookahead_string_literal('"') {
+                        Some(string) => string,
+                        None => {
+                            eprintln!("unterminated string");
+                            std::process::exit(1);
+                        }
+                    }
+                );
             }
 
             '\'' => {
