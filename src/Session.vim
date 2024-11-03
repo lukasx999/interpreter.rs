@@ -13,9 +13,9 @@ if &shortmess =~ 'A'
 else
   set shortmess=aoO
 endif
-badd +17 ~/Code/Projects/interpreter-rs/src/main.rs
-badd +240 ~/Code/Projects/interpreter-rs/src/lexer.rs
-badd +1 ~/Code/Projects/interpreter-rs/src/to_be_interpreted
+badd +6 ~/Code/Projects/interpreter-rs/src/main.rs
+badd +261 ~/Code/Projects/interpreter-rs/src/lexer.rs
+badd +1 ~/Code/Projects/interpreter-rs/src/file.txt
 argglobal
 %argdel
 $argadd main.rs
@@ -28,7 +28,7 @@ set winheight=1
 set winminwidth=0
 set winwidth=1
 argglobal
-balt ~/Code/Projects/interpreter-rs/src/to_be_interpreted
+balt ~/Code/Projects/interpreter-rs/src/file.txt
 setlocal fdm=expr
 setlocal fde=nvim_treesitter#foldexpr()
 setlocal fmr={{{,}}}
@@ -37,11 +37,11 @@ setlocal fdl=99
 setlocal fml=1
 setlocal fdn=20
 setlocal nofen
-let s:l = 240 - ((15 * winheight(0) + 20) / 41)
+let s:l = 261 - ((18 * winheight(0) + 18) / 37)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 240
+keepjumps 261
 normal! 021|
 tabnext 1
 if exists('s:wipebuf') && len(win_findbuf(s:wipebuf)) == 0 && getbufvar(s:wipebuf, '&buftype') isnot# 'terminal'

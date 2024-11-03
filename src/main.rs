@@ -3,7 +3,7 @@ use std::fs;
 mod lexer;
 use lexer::{Token, Tokenizer};
 
-const FILENAME: &str = "to_be_interpreted";
+const FILENAME: &str = "file.txt";
 
 
 

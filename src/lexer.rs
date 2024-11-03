@@ -1,4 +1,7 @@
-#[derive(Debug, Default)]
+use std::collections::HashMap;
+
+
+#[derive(Debug, Default, Clone)]
 pub enum TokenType {
     // TODO: maybe structure this through multiple enums
 
@@ -53,7 +56,7 @@ impl Token {
 pub struct Tokenizer {
     pub source: String,
     position: usize,
-    kw_list: Vec<&'static str>,
+    kw_list: HashMap<&'static str, TokenType>,
 }
 
 
@@ -63,7 +66,12 @@ impl Tokenizer {
         Self {
             source,
             position: 0,
-            kw_list: vec!["func", "if", "true", "false"]
+            kw_list: HashMap::from([
+                ("func",  TokenType::KeywordFunc),
+                ("if",    TokenType::KeywordIf),
+                ("true",  TokenType::LiteralTrue),
+                ("false", TokenType::LiteralFalse),
+            ]),
         }
     }
 
@@ -164,6 +172,14 @@ impl Tokenizer {
 
     }
 
+    // Returns Option::None if no keywords were matched
+    fn match_keywords(&self, query: &str) -> Option<TokenType> {
+        self.kw_list.get(query).cloned()
+    }
+
+
+
+
 
     // checks if `c` is the first character in an identifier
     fn char_is_identfier_start(c: char) -> bool {
@@ -190,6 +206,8 @@ impl Tokenizer {
         let char: char = self.get_char(self.position);
         let mut ignore = false;
         let mut kind   = TokenType::default();
+
+        // TODO: refactor to pure function
 
         match char {
             '('  => kind   = TokenType::Lparen,
@@ -233,31 +251,24 @@ impl Tokenizer {
 
             value => {
 
-                // Reserved Words
-                for keyword in self.kw_list.iter() {
-
-                    let query: &str = &self.source[self.position..keyword.len()];
-                    // if keyword == query {
-                    if query == keyword {
-                        println!("match!");
-                    }
-                    break;
-
-                }
-
-
                 kind =
                     // Integer Literal
                     if char.is_numeric() {
-                        TokenType::LiteralInteger
-                            (self.lookahead_integerliteral())
+                        TokenType::LiteralInteger(self.lookahead_integerliteral())
                     }
-
 
                     // Identifier Literal
                     else if Self::char_is_identfier_start(char) {
-                        TokenType::LiteralIdentifier
-                            (self.lookahead_identifier_literal())
+
+                        let query: String = self.lookahead_identifier_literal();
+
+                        // Check for Reserved Words
+                        // If no reserve words were matches, it must be a custom identifier
+                        match self.match_keywords(query.as_str()) {
+                            Some(token) => token,
+                            None        => TokenType::LiteralIdentifier(query),
+                        }
+
                     }
 
                     // Unknown Symbol
