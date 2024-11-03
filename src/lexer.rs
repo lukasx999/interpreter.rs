@@ -1,9 +1,17 @@
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub enum TokenType {
+    // TODO: maybe structure this through multiple enums
+
+    // Keywords
+    KeywordFunc,
+    KeywordIf,
+    KeywordTrue,
+    KeywordFalse,
+
     // Literals
-    IdentifierLiteral(String),
-    IntegerLiteral(i32),
-    StringLiteral(String),
+    LiteralIdentifier(String),
+    LiteralInteger(i32),
+    LiteralString(String),
 
     // Arithmetic Operators
     Plus,
@@ -20,10 +28,11 @@ pub enum TokenType {
     Rparen,
 
     // Punctuation
-    Semicolon,
+    PunctSemicolon,
+    PunctComma,
 
-    // Unknown Token
-    Invalid(String),
+    // None
+    #[default] None,
 }
 
 #[derive(Debug)]
@@ -165,13 +174,19 @@ impl Tokenizer {
         self.source.chars().nth(position).unwrap()
     }
 
+
+    fn handle_error<T: AsRef<str>>(message: T) -> ! {
+        eprintln!("Lexer Error: {}", message.as_ref());
+        std::process::exit(1);
+    }
+
+
     // Returns Option::None if token should be ignored (eg: whitespace, newlines...)
     fn next_token(&mut self) -> Option<Token> {
 
         let char: char = self.get_char(self.position);
-        let mut ignore: bool = false;
-
-        let mut kind = TokenType::Invalid("".to_string());
+        let mut ignore = false;
+        let mut kind   = TokenType::default();
 
         match char {
             '('  => kind   = TokenType::Lparen,
@@ -180,30 +195,30 @@ impl Tokenizer {
             '-'  => kind   = TokenType::Minus,
             '*'  => kind   = TokenType::Asterisk,
             '/'  => kind   = TokenType::Slash,
-            ';'  => kind   = TokenType::Semicolon,
+            ';'  => kind   = TokenType::PunctSemicolon,
+            ','  => kind   = TokenType::PunctComma,
             '\n' => ignore = true,
             ' '  => ignore = true,
 
             '"' => {
-                kind = TokenType::StringLiteral(
-                    match
-                    self.lookahead_string_literal('"') {
+                kind = TokenType::LiteralString(
+                    match self.lookahead_string_literal('"') {
                         Some(string) => string,
-                        None => {
-                            eprintln!("unterminated string");
-                            std::process::exit(1);
-                        }
+                        None => Self::handle_error("Unterminated string literal"),
                     }
                 );
             }
 
             '\'' => {
-                kind = TokenType::StringLiteral
-                    (self.lookahead_string_literal('\'').unwrap());
+                kind = TokenType::LiteralString(
+                    match self.lookahead_string_literal('\'') {
+                        Some(string) => string,
+                        None => Self::handle_error("Unterminated string literal"),
+                    }
+                );
             }
 
             '='  => {
-
                 kind =
                     if self.lookahead_operator_double('=') {
                         TokenType::DoubleEquals
@@ -211,28 +226,28 @@ impl Tokenizer {
                     else {
                         TokenType::Equals
                     };
-
             }
 
             value => {
-
                 kind =
-
                     // Integer Literal
                     if char.is_numeric() {
-                        TokenType::IntegerLiteral
+                        TokenType::LiteralInteger
                             (self.lookahead_integerliteral())
                     }
 
+                    // Reserved Words
+                    // TODO: this
+
                     // Identifier Literal
                     else if Self::char_is_identfier_start(char) {
-                        TokenType::IdentifierLiteral
+                        TokenType::LiteralIdentifier
                             (self.lookahead_identifier_literal())
                     }
 
                     // Unknown Symbol
                     else {
-                        TokenType::Invalid(value.to_string())
+                        Self::handle_error(format!("Unknown symbol: {value}"));
                     }
 
 
