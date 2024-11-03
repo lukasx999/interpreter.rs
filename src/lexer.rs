@@ -5,8 +5,8 @@ pub enum TokenType {
     // Keywords
     KeywordFunc,
     KeywordIf,
-    KeywordTrue,
-    KeywordFalse,
+    LiteralTrue,
+    LiteralFalse,
 
     // Literals
     LiteralIdentifier(String),
@@ -51,15 +51,20 @@ impl Token {
 
 
 pub struct Tokenizer {
-    position:   usize,
     pub source: String,
+    position: usize,
+    kw_list: Vec<&'static str>,
 }
 
 
 impl Tokenizer {
 
     pub fn new(source: String) -> Self {
-        Self { position: 0, source }
+        Self {
+            source,
+            position: 0,
+            kw_list: vec!["func", "if", "true", "false"]
+        }
     }
 
     pub fn tokenize(&mut self) -> Vec<Token> {
@@ -96,7 +101,7 @@ impl Tokenizer {
         let mut skip = 0usize;
         for (index, c) in self.lookahead() {
             if c == quote_symbol {
-                skip = index+1; // skip the closing quotes
+                skip = index + 1; // skip the closing quotes
                 break;
             }
         };
@@ -174,12 +179,10 @@ impl Tokenizer {
         self.source.chars().nth(position).unwrap()
     }
 
-
-    fn handle_error<T: AsRef<str>>(message: T) -> ! {
+    fn raise_error<T: AsRef<str>>(message: T) -> ! {
         eprintln!("Lexer Error: {}", message.as_ref());
         std::process::exit(1);
     }
-
 
     // Returns Option::None if token should be ignored (eg: whitespace, newlines...)
     fn next_token(&mut self) -> Option<Token> {
@@ -204,7 +207,7 @@ impl Tokenizer {
                 kind = TokenType::LiteralString(
                     match self.lookahead_string_literal('"') {
                         Some(string) => string,
-                        None => Self::handle_error("Unterminated string literal"),
+                        None => Self::raise_error("Unterminated string literal"),
                     }
                 );
             }
@@ -213,7 +216,7 @@ impl Tokenizer {
                 kind = TokenType::LiteralString(
                     match self.lookahead_string_literal('\'') {
                         Some(string) => string,
-                        None => Self::handle_error("Unterminated string literal"),
+                        None => Self::raise_error("Unterminated string literal"),
                     }
                 );
             }
@@ -229,6 +232,20 @@ impl Tokenizer {
             }
 
             value => {
+
+                // Reserved Words
+                for keyword in self.kw_list.iter() {
+
+                    let query: &str = &self.source[self.position..keyword.len()];
+                    // if keyword == query {
+                    if query == keyword {
+                        println!("match!");
+                    }
+                    break;
+
+                }
+
+
                 kind =
                     // Integer Literal
                     if char.is_numeric() {
@@ -236,8 +253,6 @@ impl Tokenizer {
                             (self.lookahead_integerliteral())
                     }
 
-                    // Reserved Words
-                    // TODO: this
 
                     // Identifier Literal
                     else if Self::char_is_identfier_start(char) {
@@ -247,7 +262,7 @@ impl Tokenizer {
 
                     // Unknown Symbol
                     else {
-                        Self::handle_error(format!("Unknown symbol: {value}"));
+                        Self::raise_error(format!("Unknown symbol: {value}"));
                     }
 
 
