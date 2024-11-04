@@ -38,7 +38,7 @@ pub enum TokenType {
     #[default] None,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Token {
     pub kind: TokenType,
     // TODO: additional token information

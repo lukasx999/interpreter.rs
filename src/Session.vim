@@ -13,13 +13,14 @@ if &shortmess =~ 'A'
 else
   set shortmess=aoO
 endif
-badd +6 ~/Code/Projects/interpreter-rs/src/main.rs
-badd +261 ~/Code/Projects/interpreter-rs/src/lexer.rs
+badd +22 ~/Code/Projects/interpreter-rs/src/main.rs
+badd +41 ~/Code/Projects/interpreter-rs/src/lexer.rs
+badd +62 ~/Code/Projects/interpreter-rs/src/parser.rs
 badd +1 ~/Code/Projects/interpreter-rs/src/file.txt
 argglobal
 %argdel
 $argadd main.rs
-edit ~/Code/Projects/interpreter-rs/src/lexer.rs
+edit ~/Code/Projects/interpreter-rs/src/parser.rs
 wincmd t
 let s:save_winminheight = &winminheight
 let s:save_winminwidth = &winminwidth
@@ -37,12 +38,12 @@ setlocal fdl=99
 setlocal fml=1
 setlocal fdn=20
 setlocal nofen
-let s:l = 261 - ((18 * winheight(0) + 18) / 37)
+let s:l = 62 - ((20 * winheight(0) + 20) / 40)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 261
-normal! 021|
+keepjumps 62
+normal! 013|
 tabnext 1
 if exists('s:wipebuf') && len(win_findbuf(s:wipebuf)) == 0 && getbufvar(s:wipebuf, '&buftype') isnot# 'terminal'
   silent exe 'bwipe ' . s:wipebuf

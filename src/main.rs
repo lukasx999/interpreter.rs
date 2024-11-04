@@ -3,8 +3,11 @@ use std::fs;
 mod lexer;
 use lexer::{Token, Tokenizer};
 
-const FILENAME: &str = "file.txt";
+mod parser;
+use parser::Parser;
 
+
+const FILENAME: &str = "file.txt";
 
 
 fn main() -> std::io::Result<()> {
@@ -15,6 +18,11 @@ fn main() -> std::io::Result<()> {
     let mut tokenizer = Tokenizer::new(s);
     let tokens: Vec<Token> = tokenizer.tokenize();
     println!("{:#?}", tokens);
+
+    let mut parser = Parser::new(tokens);
+    parser.parse();
+
+
 
     Ok(())
 
