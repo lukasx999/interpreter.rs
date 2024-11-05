@@ -4,8 +4,7 @@ mod lexer;
 use lexer::{Token, Tokenizer};
 
 mod parser;
-use parser::Parser;
-
+use parser::{Parser, AstNode, Evaluatable};
 
 const FILENAME: &str = "file.txt";
 
@@ -17,10 +16,13 @@ fn main() -> std::io::Result<()> {
 
     let mut tokenizer = Tokenizer::new(s);
     let tokens: Vec<Token> = tokenizer.tokenize();
-    println!("{:#?}", tokens);
+    // println!("{:#?}", tokens);
 
     let mut parser = Parser::new(tokens);
-    parser.parse();
+    let root: AstNode = parser.parse();
+    // println!("{:#?}", root);
+    let x = root.node.eval();
+    dbg!(x);
 
 
 

@@ -34,8 +34,8 @@ pub enum TokenType {
     PunctSemicolon,
     PunctComma,
 
-    // None
-    #[default] None,
+    // End Of File
+    #[default] EOF,
 }
 
 #[derive(Debug, Clone)]
@@ -50,6 +50,7 @@ impl Token {
         Self { kind }
     }
 }
+
 
 
 
@@ -76,10 +77,9 @@ impl Tokenizer {
     }
 
     pub fn tokenize(&mut self) -> Vec<Token> {
-
         let mut tokenlist = Vec::new();
 
-        while !self.is_at_end() {
+        loop {
 
             if let Some(token) = self.next_token() {
                 tokenlist.push(token);
@@ -87,11 +87,19 @@ impl Tokenizer {
 
             self.position += 1;
 
+            if self.is_at_end() {
+                tokenlist.push(Token::new(TokenType::EOF));
+                break tokenlist;
+            }
+
         }
 
-        tokenlist
-
     }
+
+
+
+
+
 
     fn is_at_end(&self) -> bool {
         self.position + 1 > self.source.len()
@@ -200,6 +208,8 @@ impl Tokenizer {
         std::process::exit(1);
     }
 
+
+
     // Returns Option::None if token should be ignored (eg: whitespace, newlines...)
     fn next_token(&mut self) -> Option<Token> {
 
@@ -208,6 +218,7 @@ impl Tokenizer {
         let mut kind   = TokenType::default();
 
         // TODO: refactor to pure function
+
 
         match char {
             '('  => kind   = TokenType::Lparen,
@@ -280,11 +291,12 @@ impl Tokenizer {
             },
         }
 
+
         if ignore {
-            Option::None
+            None
         }
         else {
-            Option::from(Token::new(kind))
+            Some(Token::new(kind))
         }
 
     }

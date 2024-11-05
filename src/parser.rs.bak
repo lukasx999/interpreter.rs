@@ -30,52 +30,41 @@ pub enum AstNode {
 
 // /*
 pub trait Evaluatable {
-    fn eval(&self) -> i32;
+    fn eval(&self) -> ();
 }
 
 struct Literal {
     token: Token,
 }
 
-impl Evaluatable for Literal {
-    fn eval(&self) -> i32 {
-        match self.token.kind {
-            TokenType::LiteralInteger(value) => value,
-            _ => {0}
-        }
-    }
-}
-
 struct ExprBinaryOp {
-    left:     AstNode,
+    left:     Box<AstNode>,
     operator: Token,
-    right:    AstNode,
+    right:    Box<AstNode>,
 }
 
 impl Evaluatable for ExprBinaryOp {
-    fn eval(&self) -> i32 {
+    fn eval(&self) -> () {
         match self.operator.kind {
-            TokenType::Plus     => self.left.node.eval() + self.right.node.eval(),
-            TokenType::Minus    => self.left.node.eval() - self.right.node.eval(),
-            _ => {0}
+            TokenType::Plus => self.left.eval() + self.right.eval(),
+            _ => {}
         }
     }
 }
 
-#[derive(Debug)]
-pub enum AstNodeType {
+enum AstNodeType {
     Literal,
     ExprBinaryOp,
 }
 
-pub struct AstNode {
-    pub tag: AstNodeType,
-    pub node: Box<dyn Evaluatable>,
+struct AstNode<'a> {
+    tag: AstNodeType,
+    node: &'a dyn Evaluatable,
 }
 
-
-
-
+// struct AstNode<T: Evaluatable> {
+//     node: T,
+// }
 
 
 
@@ -102,7 +91,7 @@ impl Parser {
         }
     }
 
-    pub fn parse(&mut self) -> AstNode {
+    pub fn parse(&mut self) -> Box<AstNode> {
         self.prod_term()
     }
 
@@ -113,22 +102,18 @@ impl Parser {
 
 
 
-    fn prod_primary(&mut self) -> AstNode {
+    fn prod_primary(&mut self) -> Box<AstNode> {
 
-        let new = AstNode {
-            tag: AstNodeType::Literal,
-            node: Box::new(Literal { token: self.get_current_token().clone() }),
-        };
-
+        let new = Box::new(AstNode::Literal{ token: self.get_current_token().clone() });
         self.position += 1;
         new
 
     }
 
-    fn prod_term(&mut self) -> AstNode {
+    fn prod_term(&mut self) -> Box<AstNode> {
         // term -> primary ( ( "-" | "+" ) primary )*
 
-        let mut expr: AstNode = self.prod_primary();
+        let mut expr: Box<AstNode> = self.prod_primary();
 
         while let
         TokenType::Plus | TokenType::Minus = self.get_current_token().kind {
@@ -138,16 +123,11 @@ impl Parser {
             self.position += 1;
             let rhs = self.prod_primary();
 
-            expr = AstNode {
-                tag: AstNodeType::ExprBinaryOp,
-                node: Box::new(
-                    ExprBinaryOp {
-                        left: expr,
-                        operator,
-                        right: rhs,
-                    }
-                ),
-            };
+            expr = Box::new(AstNode::ExprBinaryOp{
+                left: expr,
+                operator,
+                right: rhs,
+            });
         }
 
         expr
